@@ -1,25 +1,32 @@
-# tensorflow-vgg
+# Tensorflow-VGG
 Re-implementation of VGG Network in tensorflow
 
-# setup
+>If you are using Python3, replace `pip` by `pip3` and `python` by `python3` below.
+
+# Setup
 
 ```
 pip install pyyaml skimage skdata tensorflow-gpu
 ```
 
-# training
+For installing skdata with Python3, clone the repository from [here](https://github.com/jaberg/skdata) and install it :
+```
+python3 install setup.py
+```
+
+# Training
 
 ```
 python train_model_simple.py experiment.yaml
 ```
 
-# training on multiple gpus
+# Training on multiple gpus
 
 ```
 python train_model_parallel.py experiment.yaml
 ```
 
-# prediction
+# Prediction
 
 ```
 python predict.py dog.jpg

@@ -29,7 +29,7 @@ def build_model(input_data_tensor, input_label_tensor):
     logits = vgg.build(images, n_classes=num_classes, training=True)
     probs = tf.nn.softmax(logits)
     loss_classify = L.loss(logits, tf.one_hot(input_label_tensor, num_classes))
-    loss_weight_decay = tf.reduce_sum(tf.pack([tf.nn.l2_loss(i) for i in tf.get_collection('variables')]))
+    loss_weight_decay = tf.reduce_sum(tf.stack([tf.nn.l2_loss(i) for i in tf.get_collection('variables')]))
     loss = loss_classify + weight_decay*loss_weight_decay
     error_top5 = L.topK_error(probs, input_label_tensor, K=5)
     error_top1 = L.topK_error(probs, input_label_tensor, K=1)
@@ -74,7 +74,7 @@ def train(trn_data_generator, vld_data=None):
     # ===================================
     # initialize and run training session
     # ===================================
-    log = tools.MetricsLogger(train_log_fpath)
+    log = tools.StatLogger(train_log_fpath)
     config_proto = tf.ConfigProto(allow_soft_placement=True)
     sess = tf.Session(graph=G, config=config_proto)
     sess.run(init)
@@ -87,7 +87,8 @@ def train(trn_data_generator, vld_data=None):
 
         # Start training loop
         for step in range(num_steps):
-            batch_train = trn_data_generator.next()
+            batch_train = list(trn_data_generator.__next__())
+            #print(np.array(list(batch_train)[1]).shape)
             X_trn = np.array(batch_train[0])
             Y_trn = np.array(batch_train[1])
 
@@ -99,6 +100,9 @@ def train(trn_data_generator, vld_data=None):
                                                                                  results["error_top1"],
                                                                                  results["error_top5"],
                                                                                  results["loss"]))
+            with open("loss.log", "w+") as f:
+                f.write("{}\n".format(results["loss"]))
+            
             log.report(step=step,
                        split="TRN",
                        error_top5=float(results["error_top5"]),
@@ -151,8 +155,8 @@ if __name__ == '__main__':
     with open(args.config_file) as fp:
         config.update(yaml.load(fp))
 
-        print "Experiment config"
-        print "------------------"
-        print json.dumps(config, indent=4)
-        print "------------------"
+        print("Experiment config")
+        print("------------------")
+        print(json.dumps(config, indent=4))
+        print("------------------")
     main()
